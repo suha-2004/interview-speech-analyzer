@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Speech Quality Analyzer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        primaryHover: '#4338ca',
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-['Inter'] min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-microphone-lines text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-violet-300 bg-clip-text text-transparent">VerbaIQ</span>
+                    <span class="text-xs text-slate-400 block -mt-1 font-medium">AI Interview Speech Quality Analyzer</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    NLP Engine Online
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- Welcome Hero -->
+        <section class="text-center max-w-3xl mx-auto space-y-3">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Analyze Spoken Interview Speech with <span class="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">AI & NLP</span>
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base">
+                Real-time speech-to-text conversion, fluency pacing (WPM & pauses), filler word detection, grammatical syntax verification, and lexical richness evaluation.
+            </p>
+        </section>
+
+        <!-- Mode Selection Tabs -->
+        <div class="flex justify-center border-b border-slate-800">
+            <nav class="flex space-x-2" aria-label="Tabs">
+                <button id="tab-mic-btn" onclick="switchTab('mic')" class="px-5 py-2.5 font-medium text-sm rounded-t-lg border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/60 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-microphone"></i>
+                    Live Microphone
+                </button>
+                <button id="tab-upload-btn" onclick="switchTab('upload')" class="px-5 py-2.5 font-medium text-sm rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    Upload Audio
+                </button>
+                <button id="tab-text-btn" onclick="switchTab('text')" class="px-5 py-2.5 font-medium text-sm rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-keyboard"></i>
+                    Direct Text Input
+                </button>
+            </nav>
+        </div>
+
+        <!-- Input Section Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-sm">
+            
+            <!-- Tab 1: Live Microphone -->
+            <div id="tab-mic" class="space-y-6">
+                <!-- Suggested Interview Question -->
+                <div class="bg-indigo-950/40 border border-indigo-900/50 rounded-xl p-4 flex items-start gap-3">
+                    <i class="fa-solid fa-circle-question text-indigo-400 text-lg mt-0.5"></i>
+                    <div>
+                        <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Practice Question:</span>
+                        <p id="interview-question" class="text-slate-200 text-sm sm:text-base font-medium mt-0.5">
+                            "Tell me about a challenging technical challenge you faced, how you approached solving it, and the results achieved."
+                        </p>
+                    </div>
+                    <button onclick="nextQuestion()" class="ml-auto text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium whitespace-nowrap">
+                        <i class="fa-solid fa-shuffle"></i> Next
+                    </button>
+                </div>
+
+                <!-- Audio Visualizer Canvas with Volume Meter Header -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span class="flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-wave-square text-indigo-400"></i> Live Audio Waveform
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span>Mic Activity:</span>
+                            <div class="w-24 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                <div id="volume-level-bar" class="w-0 h-full bg-emerald-500 transition-all duration-75 rounded-full"></div>
+                            </div>
+                            <span id="mic-status-text" class="text-[11px] text-slate-400">Ready</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative w-full h-32 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center">
+                        <canvas id="visualizer-canvas" class="w-full h-full"></canvas>
+                        <div id="mic-status-overlay" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 pointer-events-none">
+                            <i class="fa-solid fa-microphone-slash text-2xl mb-1 opacity-40"></i>
+                            <span class="text-xs">Click "Start Recording" to activate microphone.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls & Timer -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
+                    <div class="flex items-center gap-3">
+                        <span id="recording-badge" class="hidden items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                            RECORDING LIVE
+                        </span>
+                        <div class="text-2xl font-mono font-bold text-slate-200 tracking-wider">
+                            <span id="timer-display">00:00</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button id="start-record-btn" onclick="startRecording()" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/30 active:scale-95">
+                            <i class="fa-solid fa-microphone"></i>
+                            Start Recording
+                        </button>
+                        <button id="stop-record-btn" onclick="stopRecording()" disabled class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-800 text-slate-500 font-semibold text-sm flex items-center justify-center gap-2 transition-all cursor-not-allowed">
+                            <i class="fa-solid fa-stop"></i>
+                            Stop & Analyze
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Spoken Transcript Preview & Editor -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-comment-dots text-indigo-400"></i>
+                            Spoken Speech Transcript (Live Stream & Editable)
+                        </label>
+                        <span class="text-[11px] text-slate-500 italic">
+                            You can review or edit words before analyzing
+                        </span>
+                    </div>
+                    <textarea id="live-speech-box" rows="3" class="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all font-sans placeholder-slate-600" placeholder="Start speaking. Your words will appear here in real-time. If needed, you can also edit or paste text directly..."></textarea>
+                </div>
+            </div>
+
+            <!-- Tab 2: Upload Audio File -->
+            <div id="tab-upload" class="hidden space-y-6">
+                <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-8 text-center transition-all cursor-pointer bg-slate-950/40">
+                    <input type="file" id="audio-file-input" accept="audio/*,.wav,.mp3,.m4a,.webm,.ogg" class="hidden" onchange="handleFileSelect(event)">
+                    <div class="space-y-3">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-2xl">
+                            <i class="fa-solid fa-file-audio"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-200">
+                                Click to select or drag & drop interview audio file
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">Supports WAV, MP3, M4A, WEBM, OGG (Up to 50MB)</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="selected-file-info" class="hidden flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-music text-indigo-400"></i>
+                        <div>
+                            <p id="file-name" class="text-sm font-medium text-slate-200"></p>
+                            <p id="file-size" class="text-xs text-slate-500"></p>
+                        </div>
+                    </div>
+                    <button onclick="analyzeUploadedFile()" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Audio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 3: Direct Text Input -->
+            <div id="tab-text" class="hidden space-y-4">
+                <div>
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                        Paste or Type Interview Transcript
+                    </label>
+                    <textarea id="direct-text-input" rows="5" class="w-full p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all font-sans" placeholder="E.g.: Well, um, in my previous role I spearheaded the migration of our monolithic system to microservices, you know, which basically increased our deployment frequency by 40%..."></textarea>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs text-slate-400">Estimated Duration:</label>
+                        <input type="number" id="direct-duration-input" value="45" min="5" max="600" class="w-20 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-sm text-slate-200">
+                        <span class="text-xs text-slate-500">sec</span>
+                    </div>
+                    <button onclick="analyzeDirectText()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-chart-simple"></i> Run NLP Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State Spinner -->
+        <div id="loading-state" class="hidden bg-slate-900/90 border border-indigo-900/50 rounded-2xl p-12 text-center shadow-2xl space-y-4">
+            <div class="relative w-16 h-16 mx-auto">
+                <div class="w-16 h-16 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-brain text-indigo-400 text-xl animate-pulse"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Analyzing Speech Quality...</h3>
+                <p id="loading-subtext" class="text-sm text-slate-400 mt-1">Transcribing speech & extracting acoustic features...</p>
+            </div>
+        </div>
+
+        <!-- Results Section (Hidden until analyzed) -->
+        <div id="results-section" class="hidden space-y-8 animate-fade-in">
+            
+            <!-- Overall Score & Performance Header Card -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Score Circle & Badge -->
+                <div class="flex items-center gap-6">
+                    <div class="relative w-28 h-28 flex items-center justify-center">
+                        <svg class="w-28 h-28 transform -rotate-90">
+                            <circle cx="56" cy="56" r="46" stroke="currentColor" stroke-width="8" class="text-slate-800" fill="transparent" />
+                            <circle id="score-ring" cx="56" cy="56" r="46" stroke="currentColor" stroke-width="8" class="text-indigo-500 transition-all duration-1000" stroke-dasharray="289" stroke-dashoffset="289" fill="transparent" stroke-linecap="round" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="overall-score-val" class="text-3xl font-extrabold text-white">0</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">/ 100</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span id="performance-tier-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            Evaluated
+                        </span>
+                        <h2 class="text-2xl font-bold text-white mt-1.5">Interview Readiness Score</h2>
+                        <p id="performance-summary" class="text-sm text-slate-400 max-w-md mt-1 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Grid -->
+                <div class="grid grid-cols-3 gap-4 w-full md:w-auto border-t md:border-t-0 md:border-l border-slate-800 pt-4 md:pt-0 md:pl-8">
+                    <div class="text-center">
+                        <span class="text-xs text-slate-500 block uppercase font-medium">Duration</span>
+                        <span id="stat-duration" class="text-lg font-bold text-slate-200">0s</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-xs text-slate-500 block uppercase font-medium">Total Words</span>
+                        <span id="stat-words" class="text-lg font-bold text-slate-200">0</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-xs text-slate-500 block uppercase font-medium">Speech Rate</span>
+                        <span id="stat-wpm" class="text-lg font-bold text-indigo-400">0 WPM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Pillar Breakdown Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Pillar 1: Fluency & Delivery -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                <i class="fa-solid fa-stopwatch text-sm"></i>
+                            </div>
+                            <h3 class="font-bold text-white text-base">Fluency & Pacing</h3>
+                        </div>
+                        <span id="fluency-score-badge" class="text-lg font-extrabold text-blue-400">0%</span>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Speaking Pace</span>
+                            <span id="fluency-pace-label" class="font-semibold text-slate-200">Optimal</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Filler Words</span>
+                            <span id="fluency-fillers" class="font-semibold text-amber-400">0 (0%)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Long Pauses (>1s)</span>
+                            <span id="fluency-pauses" class="font-semibold text-slate-200">0</span>
+                        </div>
+                    </div>
+                    <div id="fluency-feedback" class="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 leading-relaxed"></div>
+                </div>
+
+                <!-- Pillar 2: Grammar & Syntax -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                <i class="fa-solid fa-spell-check text-sm"></i>
+                            </div>
+                            <h3 class="font-bold text-white text-base">Grammar Accuracy</h3>
+                        </div>
+                        <span id="grammar-score-badge" class="text-lg font-extrabold text-emerald-400">0%</span>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Syntax Errors Found</span>
+                            <span id="grammar-error-count" class="font-semibold text-rose-400">0</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Grammar Engine</span>
+                            <span id="grammar-engine-name" class="font-semibold text-slate-200">NLP Rule Engine</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Accuracy Status</span>
+                            <span id="grammar-accuracy-label" class="font-semibold text-emerald-400">High Precision</span>
+                        </div>
+                    </div>
+                    <div id="grammar-feedback" class="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 leading-relaxed"></div>
+                </div>
+
+                <!-- Pillar 3: Vocabulary & Richness -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                                <i class="fa-solid fa-book-bookmark text-sm"></i>
+                            </div>
+                            <h3 class="font-bold text-white text-base">Vocabulary Richness</h3>
+                        </div>
+                        <span id="vocab-score-badge" class="text-lg font-extrabold text-purple-400">0%</span>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Lexical Diversity (TTR)</span>
+                            <span id="vocab-ttr" class="font-semibold text-purple-300">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Power Action Verbs</span>
+                            <span id="vocab-power-count" class="font-semibold text-emerald-400">0</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/80">
+                            <span class="text-slate-400">Readability Level</span>
+                            <span id="vocab-readability" class="font-semibold text-slate-200">Grade 0</span>
+                        </div>
+                    </div>
+                    <div id="vocab-feedback" class="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 leading-relaxed"></div>
+                </div>
+
+            </div>
+
+            <!-- Radar Chart & Key Strengths / Improvements -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Radar Chart -->
+                <div class="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col items-center">
+                    <h3 class="font-bold text-white text-sm mb-4 self-start flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-indigo-400"></i> Competency Benchmark
+                    </h3>
+                    <div class="w-full max-w-[320px] aspect-square">
+                        <canvas id="competency-radar-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Strengths & Recommendations -->
+                <div class="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                    <!-- Strengths -->
+                    <div class="space-y-3">
+                        <h3 class="font-bold text-emerald-400 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> What You Did Well
+                        </h3>
+                        <ul id="strengths-list" class="space-y-2 text-xs sm:text-sm text-slate-300"></ul>
+                    </div>
+
+                    <!-- Improvement Areas -->
+                    <div class="space-y-3 pt-4 border-t border-slate-800">
+                        <h3 class="font-bold text-amber-400 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> High Priority Improvements
+                        </h3>
+                        <ul id="improvements-list" class="space-y-2 text-xs sm:text-sm text-slate-300"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Annotated Transcript -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-quote-left text-indigo-400"></i>
+                        Annotated Interview Speech Transcript
+                    </h3>
+                    <!-- Legend -->
+                    <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                        <span class="px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-medium">🟡 Filler Words</span>
+                        <span class="px-2 py-0.5 rounded bg-rose-400/20 text-rose-300 border border-rose-400/30 font-medium">🔴 Grammar Issue</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 font-medium">🟢 Action Verbs</span>
+                    </div>
+                </div>
+
+                <div id="annotated-transcript-box" class="p-5 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 text-sm sm:text-base leading-relaxed tracking-wide min-h-[5rem]"></div>
+            </div>
+
+            <!-- Grammar Correction Breakdown Table -->
+            <div id="grammar-table-container" class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-400"></i>
+                    Grammar & Syntax Error Diagnostics
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm text-slate-300">
+                        <thead class="bg-slate-950 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4">Error Type</th>
+                                <th class="py-3 px-4">Spoken Snippet</th>
+                                <th class="py-3 px-4">Explanation</th>
+                                <th class="py-3 px-4 text-emerald-400">Suggested Correction</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grammar-errors-tbody" class="divide-y divide-slate-800">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reset / Try Again Button -->
+            <div class="text-center pt-4">
+                <button onclick="resetAnalysis()" class="px-8 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm transition-all inline-flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Analyze Another Answer
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-900/40 py-6 text-center text-xs text-slate-500">
+        <p>AI Interview Speech Quality Analyzer &bull; Built with FastAPI, SpeechRecognition, and Advanced Natural Language Processing</p>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
